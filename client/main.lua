@@ -155,18 +155,39 @@ local function DisableDisplayControlActions()
     DisableControlAction(0, 4, true) -- disable mouse look
     DisableControlAction(0, 5, true) -- disable mouse look
     DisableControlAction(0, 6, true) -- disable mouse look
-    DisableControlAction(0, 263, true) -- disable melee
-    DisableControlAction(0, 264, true) -- disable melee
-    DisableControlAction(0, 257, true) -- disable melee
-    DisableControlAction(0, 140, true) -- disable melee
-    DisableControlAction(0, 141, true) -- disable melee
-    DisableControlAction(0, 142, true) -- disable melee
-    DisableControlAction(0, 143, true) -- disable melee
-    DisableControlAction(0, 177, true) -- disable escape
-    DisableControlAction(0, 200, true) -- disable escape
-    DisableControlAction(0, 202, true) -- disable escape
-    DisableControlAction(0, 322, true) -- disable escape
-    DisableControlAction(0, 245, true) -- disable chat
+    DisableControlAction(0, 21, true) -- left shift
+    DisableControlAction(0, 22, true) -- Jump
+    DisableControlAction(0, 24, true) -- Attack
+    DisableControlAction(0, 25, true) -- Aim
+    DisableControlAction(0, 26, true) -- Disable looking behind
+    DisableControlAction(0, 29, true) -- Point
+    DisableControlAction(2, 36, true) -- Disable going stealth
+    DisableControlAction(0, 37, true) -- Select Weapon
+    DisableControlAction(0, 44, true) -- Cover
+    DisableControlAction(0, 45, true) -- Reload
+    DisableControlAction(0, 47, true)  -- Disable weapon
+    -- DisableControlAction(0, 71, true) -- Disable driving forward in vehicle
+    -- DisableControlAction(0, 72, true) -- Disable reversing in vehicle
+    DisableControlAction(0, 73, true) -- Disable clearing animation
+    DisableControlAction(0, 81, true) -- Point
+    DisableControlAction(0, 140, true) -- Disable melee
+    DisableControlAction(0, 141, true) -- Disable melee
+    DisableControlAction(0, 142, true) -- Disable melee
+    DisableControlAction(0, 167, true) -- Job
+    DisableControlAction(0, 170, true) -- Animations
+    DisableControlAction(2, 192, true)
+    DisableControlAction(2, 199, true) -- Disable pause screen
+    DisableControlAction(2, 204, true)
+    DisableControlAction(2, 211, true)
+    DisableControlAction(2, 349, true)
+    DisableControlAction(0, 244, true) -- Ragdoll
+    DisableControlAction(0, 245, true) -- Disable chat
+    DisableControlAction(0, 257, true) -- Attack 2
+    DisableControlAction(0, 263, true) -- Melee Attack 1
+    DisableControlAction(0, 264, true) -- Disable melee
+    DisableControlAction(0, 288, true) -- Disable phone
+    DisableControlAction(0, 289, true) -- Inventory
+    DisableControlAction(0, 303, true) -- Car lock
 end
 
 local function LoadPhone()
@@ -273,6 +294,7 @@ local function OpenPhone()
         if HasPhone then
             PhoneData.PlayerData = QBCore.Functions.GetPlayerData()
             SetNuiFocus(true, true)
+	    SetNuiFocusKeepInput(true)
             SendNUIMessage({
                 action = "open",
                 Tweets = PhoneData.Tweets,
@@ -285,6 +307,7 @@ local function OpenPhone()
             CreateThread(function()
                 while PhoneData.isOpen do
                     DisableDisplayControlActions()
+		    LocalPlayer.state:set("inv_busy", true, true)
                     Wait(1)
                 end
             end)
@@ -461,7 +484,7 @@ end
 RegisterCommand('phone', function()
     local PlayerData = QBCore.Functions.GetPlayerData()
     if not PhoneData.isOpen and LocalPlayer.state.isLoggedIn then
-        if not PlayerData.metadata['ishandcuffed'] and not PlayerData.metadata['inlaststand'] and not PlayerData.metadata['isdead'] and not IsPauseMenuActive() then
+        if not LocalPlayer.state.inv_busy and not PlayerData.metadata['ishandcuffed'] and not PlayerData.metadata['inlaststand'] and not PlayerData.metadata['isdead'] and not IsPauseMenuActive() then
             OpenPhone()
         else
             QBCore.Functions.Notify("Action not available at the moment..", "error")
@@ -548,6 +571,7 @@ RegisterNUICallback('Close', function(_, cb)
     SetNuiFocus(false, false)
     SetTimeout(500, function()
         PhoneData.isOpen = false
+        LocalPlayer.state:set("inv_busy", false, true)
     end)
     cb('ok')
 end)
@@ -1378,6 +1402,15 @@ RegisterNUICallback('SendMessage', function(data, cb)
         })
     end,  PhoneData.Chats[GetKeyByNumber(ChatNumber)])
     cb("ok")
+end)
+
+-- Movement toggle
+RegisterNUICallback('DissalowMoving', function()
+    SetNuiFocusKeepInput(false)
+end)
+
+RegisterNUICallback('AllowMoving', function()
+    SetNuiFocusKeepInput(true)
 end)
 
 RegisterNUICallback("TakePhoto", function(_,cb)
