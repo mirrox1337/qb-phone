@@ -45,6 +45,16 @@ function IsAppJobBlocked(joblist, myjob) {
     return retval;
 }
 
+$("input[type=text], textarea, input[type=number]").focusin(function (e) {
+	e.preventDefault();
+	$.post("https://qb-phone/DissalowMoving");
+});
+
+$("input[type=text], textarea, input[type=number]").focusout(function (e) {
+	e.preventDefault();
+	$.post("https://qb-phone/AllowMoving");
+});
+
 QB.Phone.Functions.SetupApplications = function(data) {
     QB.Phone.Data.Applications = data.applications;
 
